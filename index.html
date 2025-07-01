@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB REGISTER</title>
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <img src="logo-unfari.png" alt="Logo UNFARI" class="top-left-logo">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="wrapper">
+        <form action="Berhasil.html"> <h1>Register</h1>
+            <div class="input-box">
+                <input type="text" placeholder="Masukan Username" required>
+                <i class='bx bxs-user'></i>
+            </div>
+            <div class="input-box">
+                <input type="email" placeholder="Masukan Email" required>
+                <i class='bx bxs-envelope'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" placeholder="Masukan Password" required>
+                <i class='bx bxs-lock-alt'></i>
+            </div>
+
+            <div class="remember-forgot">
+                <label><input type="checkbox"> Simpan Password</label>
+                </div>
+
+            <button type="submit" class="btn">Sign up</button>
+
+            <div class="register-link">
+                <p>Sudah punya akun? <a href="Login.html">Sign in</a></p>
+            </div>
+        </form>
+    </div>
+    <video autoplay muted loop>
+        <source src="white-sakura-blossom.1920x1080.mp4" type="video/mp4">
+    </video>
+
+    <script>
+        // --- Script Animasi Partikel ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const numParticles = 100;
+        const maxRadius = 3;
+        const minRadius = 0.5;
+        const maxSpeed = 0.5;
+        const lineColor = 'rgba(255, 255, 255, 0.1)'; // Garis putih transparan
+        const particleColor = 'rgba(0, 0, 0, 0.8)'; // Partikel hitam transparan
+
+        let mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function Particle(x, y, radius, dx, dy) {
+            this.x = x;
+            this.y = y;
+            this.baseRadius = radius;
+            this.radius = radius;
+            this.dx = dx;
+            this.dy = dy;
+            this.color = particleColor;
+
+            this.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            };
+
+            this.update = function() {
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                }
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                }
+
+                this.x += this.dx;
+                this.y += this.dy;
+
+                const distanceX = mouse.x - this.x;
+                const distanceY = mouse.y - this.y;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+                if (distance < mouse.radius + this.radius) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.radius * 10) {
+                        this.x += 2;
+                    }
+                    if (mouse.x > this.x && this.x > this.radius * 10) {
+                        this.x -= 2;
+                    }
+                    if (mouse.y < this.y && this.y < canvas.height - this.radius * 10) {
+                        this.y += 2;
+                    }
+                    if (mouse.y > this.y && this.y > this.radius * 10) {
+                        this.y -= 2;
+                    }
+                }
+
+                this.draw();
+            };
+
+            this.reactToClick = function(clickX, clickY) {
+                const distance = Math.sqrt((clickX - this.x) ** 2 + (clickY - this.y) ** 2);
+                if (distance < 50) {
+                    this.color = 'rgba(255, 255, 255, 0.9)';
+                    this.radius += 2;
+                    setTimeout(() => {
+                        this.color = particleColor;
+                        this.radius = this.baseRadius;
+                    }, 200);
+                }
+            };
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < numParticles; i++) {
+                const radius = Math.random() * (maxRadius - minRadius) + minRadius;
+                const x = Math.random() * (canvas.width - radius * 2) + radius;
+                const y = Math.random() * (canvas.height - radius * 2) + radius;
+                const dx = (Math.random() - 0.5) * maxSpeed;
+                const dy = (Math.random() - 0.5) * maxSpeed;
+                particles.push(new Particle(x, y, radius, dx, dy));
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+
+                for (let j = i; j < particles.length; j++) {
+                    const distance = Math.sqrt(
+                        (particles[i].x - particles[j].x) ** 2 +
+                        (particles[i].y - particles[j].y) ** 2
+                    );
+
+                    if (distance < connectDistance) {
+                        ctx.strokeStyle = lineColor;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // --- Event Listeners untuk Animasi Partikel ---
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        canvas.addEventListener('click', (event) => {
+            const clickX = event.clientX;
+            const clickY = event.clientY;
+            particles.forEach(particle => {
+                particle.reactToClick(clickX, clickY);
+            });
+        });
+
+        // --- Animasi Fade-in Wrapper Form ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const wrapper = document.querySelector('.wrapper');
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translate(-50%, -50%) scale(0.9)';
+
+            setTimeout(() => {
+                wrapper.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
+                wrapper.style.opacity = '1';
+                wrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 100);
+        });
+
+        // --- Inisialisasi Semua Animasi ---
+        resizeCanvas();
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+
+</html>
